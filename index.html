@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>leejinmi — Film & Media</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0d;
+      --surface: #111118;
+      --card: #16161f;
+      --border: rgba(255,255,255,0.07);
+      --accent: #e8c97e;
+      --accent2: #c98fbb;
+      --accent3: #7eb5e8;
+      --text: #e8e4dc;
+      --muted: #8a8580;
+      --grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.25s ease, width 0.3s, height 0.3s, opacity 0.3s;
+      opacity: 0.5;
+    }
+
+    /* Noise grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: var(--grain);
+      background-size: 200px;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.4;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 4rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,13,0.75);
+      backdrop-filter: blur(18px);
+    }
+    .nav-logo {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 1.25rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 4rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 75% 40%, rgba(200,143,187,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 55% at 20% 70%, rgba(126,181,232,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 35% 40% at 60% 15%, rgba(232,201,126,0.10) 0%, transparent 50%),
+        var(--bg);
+    }
+    /* Film strip accent */
+    .filmstrip {
+      position: absolute;
+      top: 0; right: 8rem;
+      width: 60px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      opacity: 0.08;
+      pointer-events: none;
+    }
+    .filmstrip-hole {
+      width: 60px;
+      height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filmstrip-hole::before {
+      content: '';
+      width: 22px; height: 16px;
+      border: 2px solid var(--text);
+      border-radius: 3px;
+    }
+    .filmstrip-frame {
+      width: 60px;
+      height: 80px;
+      border-left: 2px solid var(--text);
+      border-right: 2px solid var(--text);
+      flex-shrink: 0;
+    }
+    .hero-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s ease forwards;
+    }
+    .hero-name {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(4rem, 10vw, 9rem);
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.4s ease forwards;
+    }
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      max-width: 460px;
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.6s ease forwards;
+    }
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem; right: 4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeIn 1s 1.2s ease forwards;
+    }
+    .hero-scroll::before {
+      content: '';
+      width: 40px; height: 1px;
+      background: var(--muted);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 8rem 4rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      max-width: 60px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.4;
+    }
+    .section-title {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      line-height: 1.05;
+      margin-bottom: 3rem;
+    }
+    .section-title em { font-style: italic; color: var(--accent); }
+
+    /* Divider line */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ABOUT */
+    #about .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .about-text {
+      font-size: 0.88rem;
+      line-height: 2;
+      color: var(--muted);
+    }
+    .about-text strong { color: var(--text); font-weight: 500; }
+    .about-text p + p { margin-top: 1.2rem; }
+
+    .about-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1.6rem 2rem;
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(232,201,126,0.04), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .stat-card:hover { border-color: rgba(232,201,126,0.25); transform: translateX(6px); }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-num {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 2.4rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-desc {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* PROJECTS */
+    #projects {
+      background: var(--surface);
+      max-width: 100%;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    #projects .inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0;
+    }
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .project-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(232,201,126,0.15);
+    }
+    .project-thumb {
+      height: 260px;
+      position: relative;
+      overflow: hidden;
+      background: #0d0d14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Animated data-viz decoration for project card */
+    .project-thumb .viz-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 70% at 50% 50%, rgba(200,143,187,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 20%, rgba(126,181,232,0.10) 0%, transparent 50%);
+    }
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 130px;
+      position: relative;
+      z-index: 1;
+    }
+    .bar {
+      width: 18px;
+      border-radius: 2px 2px 0 0;
+      animation: barGrow 1.4s ease forwards;
+      transform-origin: bottom;
+      opacity: 0;
+    }
+    @keyframes barGrow {
+      from { transform: scaleY(0); opacity: 0; }
+      to   { transform: scaleY(1); opacity: 1; }
+    }
+    .bar:nth-child(1)  { height: 45%; background: linear-gradient(to top, var(--accent2), #a04e84); animation-delay: 0.1s; }
+    .bar:nth-child(2)  { height: 70%; background: linear-gradient(to top, var(--accent), #b8913a); animation-delay: 0.2s; }
+    .bar:nth-child(3)  { height: 55%; background: linear-gradient(to top, var(--accent3), #4e7eb8); animation-delay: 0.3s; }
+    .bar:nth-child(4)  { height: 85%; background: linear-gradient(to top, var(--accent2), #a04e84); animation-delay: 0.4s; }
+    .bar:nth-child(5)  { height: 60%; background: linear-gradient(to top, var(--accent), #b8913a); animation-delay: 0.5s; }
+    .bar:nth-child(6)  { height: 40%; background: linear-gradient(to top, var(--accent3), #4e7eb8); animation-delay: 0.6s; }
+    .bar:nth-child(7)  { height: 95%; background: linear-gradient(to top, var(--accent2), #a04e84); animation-delay: 0.7s; }
+    .bar:nth-child(8)  { height: 50%; background: linear-gradient(to top, var(--accent), #b8913a); animation-delay: 0.8s; }
+    .bar:nth-child(9)  { height: 75%; background: linear-gradient(to top, var(--accent3), #4e7eb8); animation-delay: 0.9s; }
+    .bar:nth-child(10) { height: 30%; background: linear-gradient(to top, var(--accent2), #a04e84); animation-delay: 1.0s; }
+    .thumb-label {
+      position: absolute;
+      top: 1.2rem; left: 1.4rem;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(10,10,13,0.7);
+      padding: 0.3rem 0.6rem;
+      border: 1px solid rgba(232,201,126,0.2);
+      border-radius: 1px;
+    }
+    .project-body { padding: 2rem 2.2rem; }
+    .project-tag {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 0.6rem;
+    }
+    .project-title {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 1.6rem;
+      margin-bottom: 0.9rem;
+      line-height: 1.15;
+    }
+    .project-desc {
+      font-size: 0.78rem;
+      line-height: 1.85;
+      color: var(--muted);
+    }
+    .project-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .pill {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--muted);
+      transition: border-color 0.25s, color 0.25s;
+    }
+    .pill:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .skill-group {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 2rem;
+      transition: border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .skill-group::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 2px; width: 0;
+      transition: width 0.4s ease;
+    }
+    .skill-group:nth-child(1)::after { background: var(--accent); }
+    .skill-group:nth-child(2)::after { background: var(--accent2); }
+    .skill-group:nth-child(3)::after { background: var(--accent3); }
+    .skill-group:hover::after { width: 100%; }
+    .skill-group:hover { border-color: rgba(255,255,255,0.12); }
+    .skill-group-icon {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .skill-group-name {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .skill-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .skill-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .skill-item-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .skill-bar-bg {
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 1.2s ease;
+    }
+    .skill-group:nth-child(1) .skill-bar-fill { background: var(--accent); }
+    .skill-group:nth-child(2) .skill-bar-fill { background: var(--accent2); }
+    .skill-group:nth-child(3) .skill-bar-fill { background: var(--accent3); }
+
+    /* CONTACT */
+    #contact {
+      text-align: center;
+      max-width: 700px;
+    }
+    #contact .section-label { justify-content: center; }
+    #contact .section-label::after { display: none; }
+    .contact-text {
+      font-size: 0.85rem;
+      line-height: 1.9;
+      color: var(--muted);
+      margin-bottom: 3rem;
+    }
+    .contact-links {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.85rem 1.8rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+    }
+    .contact-link:hover {
+      background: rgba(232,201,126,0.06);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .contact-link.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0a0a0d;
+    }
+    .contact-link.primary:hover {
+      background: #d4b468;
+      border-color: #d4b468;
+      color: #0a0a0d;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    footer span { text-transform: uppercase; }
+    footer .heart { color: var(--accent2); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(232,201,126,0.3); border-radius: 2px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 2rem; }
+      #hero { padding: 0 2rem 5rem; }
+      section { padding: 5rem 2rem; }
+      #about .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .skills-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 0.8rem; text-align: center; }
+    }
+    @media (max-width: 600px) {
+      .nav-links { gap: 1.2rem; }
+      .hero-name { font-size: 3.2rem; }
+      .hero-scroll { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">leejinmi</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div id="hero">
+    <div class="hero-bg"></div>
+    <!-- Film strip decoration -->
+    <div class="filmstrip" id="filmstrip"></div>
+
+    <div style="position:relative; z-index:2;">
+      <p class="hero-tag">Film & Media · SKKU · 성균관대학교</p>
+      <h1 class="hero-name">lee<em>jin</em><br/>mi.</h1>
+      <p class="hero-sub">Exploring the language of Korean variety shows — how humour, editing, and chemistry speak to audiences. Bridging film theory with AI and data.</p>
+    </div>
+    <div class="hero-scroll">Scroll to explore</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-label">01 — About</div>
+    <h2 class="section-title">Who I <em>am</em></h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm a <strong>Film and Media student at Sungkyunkwan University (SKKU)</strong>, Seoul, with a deep fascination for the craft behind Korean variety shows.</p>
+        <p>For me, variety isn't just entertainment — it's a sophisticated system of communication. From the rhythm of a perfectly-timed edit to the graphic punch of a subtitle effect, every element is intentional. I want to decode that system.</p>
+        <p>My goal is to merge <strong>film theory with AI and data visualisation</strong>, building tools that reveal what makes these shows resonate so powerfully with their audiences.</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-card">
+          <div class="stat-num">SKKU</div>
+          <div class="stat-desc">Sungkyunkwan University · Seoul</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">Film & Media</div>
+          <div class="stat-desc">Major — Broadcasting, Editing, Storytelling</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">KV Shows</div>
+          <div class="stat-desc">Korean Variety — Primary research focus</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">AI × Film</div>
+          <div class="stat-desc">Data-driven media analysis & visualisation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROJECTS -->
+  <section id="projects" style="max-width:100%; padding: 8rem 4rem;">
+    <div class="inner">
+      <div class="section-label">02 — Projects</div>
+      <h2 class="section-title">What I'm <em>building</em></h2>
+
+      <div class="project-card">
+        <div class="project-thumb">
+          <div class="viz-bg"></div>
+          <div class="bars">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+          <div class="thumb-label">In Development</div>
+        </div>
+        <div class="project-body">
+          <div class="project-tag">AI · Data Visualisation · Media Studies</div>
+          <div class="project-title">Korean Variety Show<br/>Trend Dashboard</div>
+          <div class="project-desc">
+            A creative dashboard that analyses trends across Korean variety shows — examining how humour constructs, editing cadence, cast chemistry, and signature subtitle effects evolve over time and across programmes. Using AI-powered sentiment analysis and data visualisation to make the invisible mechanics of variety production visible and explorable.
+          </div>
+          <div class="project-pills">
+            <span class="pill">Python</span>
+            <span class="pill">D3.js</span>
+            <span class="pill">NLP</span>
+            <span class="pill">Sentiment Analysis</span>
+            <span class="pill">Film Theory</span>
+            <span class="pill">Data Viz</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="section-label">03 — Skills</div>
+    <h2 class="section-title">What I <em>bring</em></h2>
+
+    <div class="skills-grid">
+      <!-- Film & Media -->
+      <div class="skill-group">
+        <div class="skill-group-icon">🎬</div>
+        <div class="skill-group-name">Film & Media</div>
+        <div class="skill-items">
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Video Editing</span><span>90%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:90%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Storytelling</span><span>88%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:88%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Media Analysis</span><span>85%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:85%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Subtitle Design</span><span>80%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:80%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Research & AI -->
+      <div class="skill-group">
+        <div class="skill-group-icon">🤖</div>
+        <div class="skill-group-name">AI & Research</div>
+        <div class="skill-items">
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Python</span><span>75%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>NLP / AI Tools</span><span>70%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:70%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Sentiment Analysis</span><span>68%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:68%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Academic Writing</span><span>85%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:85%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data & Design -->
+      <div class="skill-group">
+        <div class="skill-group-icon">📊</div>
+        <div class="skill-group-name">Data & Design</div>
+        <div class="skill-items">
+          <div class="skill-item">
+            <div class="skill-item-label"><span>Data Visualisation</span><span>72%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:72%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>D3.js / Charting</span><span>65%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:65%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>UI / Visual Design</span><span>78%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:78%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-item-label"><span>HTML · CSS</span><span>70%</span></div>
+            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:70%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CONTACT -->
+  <section id="contact" style="margin: 0 auto; text-align:center;">
+    <div class="section-label" style="justify-content:center;">04 — Contact</div>
+    <h2 class="section-title" style="text-align:center;">Let's <em>connect</em></h2>
+    <p class="contact-text">
+      Interested in collaborating on media analysis, AI-driven film projects, or just want to talk about your favourite variety show? I'd love to hear from you.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:leejinmi@skku.edu" class="contact-link primary">
+        ✉ Send a Message
+      </a>
+      <a href="#" class="contact-link">
+        ↗ GitHub
+      </a>
+      <a href="#" class="contact-link">
+        ↗ LinkedIn
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 leejinmi</span>
+    <span>Film & Media · SKKU · Seoul <span class="heart">♥</span></span>
+    <span>Designed with intention</span>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animCursor() {
+      cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animCursor);
+    }
+    animCursor();
+
+    // Hover effect on interactive elements
+    document.querySelectorAll('a, button, .stat-card, .skill-group, .project-card').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.style.width = '18px'; cursor.style.height = '18px';
+        ring.style.width = '54px'; ring.style.height = '54px'; ring.style.opacity = '0.25';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.style.width = '10px'; cursor.style.height = '10px';
+        ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+      });
+    });
+
+    // Build filmstrip
+    const fs = document.getElementById('filmstrip');
+    for (let i = 0; i < 30; i++) {
+      const hole = document.createElement('div');
+      hole.className = 'filmstrip-hole';
+      fs.appendChild(hole);
+      const frame = document.createElement('div');
+      frame.className = 'filmstrip-frame';
+      fs.appendChild(frame);
+    }
+
+    // Intersection observer for skill bars (re-animate on scroll)
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('.skill-bar-fill').forEach(bar => {
+            const w = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => { bar.style.width = w; }, 50);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.skills-grid').forEach(g => observer.observe(g));
+  </script>
+</body>
+</html>
